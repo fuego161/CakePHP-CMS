@@ -21,9 +21,7 @@ class ArticlesController extends AppController
         $article = $this->Articles->newEmptyEntity();
 
         if ($this->request->is('post')) {
-            $article = $this->Article->patchEntity($article, $this->request->getData());
-
-            debug($this->request->getData());
+            $article = $this->Articles->patchEntity($article, $this->request->getData());
 
             $article->user_id = 1;
 
@@ -33,8 +31,7 @@ class ArticlesController extends AppController
                 return $this->redirect(['action' => 'index']);
             }
 
-            $this->Flash->error(__('Unable to add your article'));
-
+            $this->Flash->error(__('Unable to add your article.'));
         }
 
         $this->set(compact(('article')));
@@ -55,7 +52,7 @@ class ArticlesController extends AppController
                 return $this->redirect(['action' => 'index']);
             }
 
-            $this->Flash->error(__('Unable to update your article'));
+            $this->Flash->error(__('Unable to update your article.'));
         }
 
         $this->set(compact(('article')));
