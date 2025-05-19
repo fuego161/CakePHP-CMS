@@ -39,13 +39,17 @@ class ArticlesController extends AppController
             $this->Flash->error(__('Unable to add your article.'));
         }
 
-        $this->set(compact(('article')));
+        // Get a list of tags
+        $tags = $this->Articles->Tags->find('list')->all();
+
+        $this->set(compact('article', 'tags'));
     }
 
     public function edit($slug)
     {
         $article = $this->Articles
             ->findBySlug($slug)
+            ->contain('Tags')
             ->firstOrFail();
         $this->Authorization->authorize($article);
 
@@ -61,7 +65,10 @@ class ArticlesController extends AppController
             $this->Flash->error(__('Unable to update your article.'));
         }
 
-        $this->set(compact(('article')));
+        // Get a list of tags
+        $tags = $this->Articles->Tags->find('list')->all();
+
+        $this->set(compact('article', 'tags'));
     }
 
     public function delete($slug)
@@ -77,5 +84,18 @@ class ArticlesController extends AppController
 
             return $this->redirect(['action' => 'index']);
         }
+    }
+
+    public function tags()
+    {
+        $this->Authorization->skipAuthorization();
+
+        // The 'pass' key is provided by CakePHP and contains all the passed URL path segments in the request
+        $tags = $this->request->getParam('pass');
+
+        // Use the ArticlesTable to find tagged articles
+        $articles = $this->Articles->find('tagged', tags: $tags)->all();
+
+        $this->set(compact('articles', 'tags'));
     }
 }

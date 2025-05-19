@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Model\Table;
 
 use Cake\ORM\Table;
+use Cake\ORM\Query\SelectQuery;
 use Cake\Utility\Text;
 use Cake\Event\EventInterface;
 use Cake\Validation\Validator;
@@ -15,6 +16,7 @@ class ArticlesTable extends Table
     {
         parent::initialize($config);
         $this->addBehavior('Timestamp');
+        $this->belongsToMany('Tags');
     }
 
     public function beforeSave(EventInterface $event, $entity, $options)
@@ -37,5 +39,28 @@ class ArticlesTable extends Table
             ->minLength('body', 10);
 
         return $validator;
+    }
+
+    public function findTagged(SelectQuery $query, array $tags = []): SelectQuery
+    {
+        $columns = [
+            'Articles.id',
+            'Articles.user_id',
+            'Articles.title',
+            'Articles.body',
+            'Articles.published',
+            'Articles.created',
+            'Articles.slug',
+        ];
+
+        $query = $query->select($columns)->distinct($columns);
+
+        if (empty($tags)) {
+            $query->leftJoinWith('Tags')->where(['Tags.title IS' => null]);
+        } else {
+            $query->innerJoinWith('Tags')->where(['Tags.title IN' => $tags]);
+        }
+
+        return $query->groupBy(['Articles.id']);
     }
 }
