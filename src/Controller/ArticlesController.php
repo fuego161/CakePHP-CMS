@@ -16,7 +16,11 @@ class ArticlesController extends AppController
     {
         $this->Authorization->skipAuthorization();
 
-        $article = $this->Articles->findBySlug($slug)->firstOrFail();
+        $article = $this->Articles
+            ->findBySlug($slug)
+            ->contain('Tags')
+            ->firstOrFail();
+
         $this->set(compact(('article')));
     }
 
