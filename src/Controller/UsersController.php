@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -10,6 +11,13 @@ namespace App\Controller;
  */
 class UsersController extends AppController
 {
+    public function beforeFilter(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeFilter($event);
+
+        $this->Authentication->addUnauthenticatedActions(['login', 'add']);
+    }
+
     /**
      * Index method
      *
@@ -21,6 +29,50 @@ class UsersController extends AppController
         $users = $this->paginate($query);
 
         $this->set(compact('users'));
+    }
+
+    /**
+    * Login method
+    *
+    * @return \Cake\Http\Response|null|void Renders view
+    */
+    public function login()
+    {
+        $this->request->allowMethod(['get', 'post']);
+        $result = $this->Authentication->getResult();
+
+        // Regardless of POST or GET, redirect if user is logged in
+        if ($result && $result->isValid()) {
+            // redirect to /articles after login success
+            $redirect = $this->request->getQuery('redirect', [
+                'controller' => 'Articles',
+                'action' => 'index',
+            ]);
+
+            return $this->redirect(($redirect));
+        }
+
+        // Display error if user submitted and authentication failed
+        if ($this->request->is('post') && !$result->isValid()) {
+            $this->Flash->error(__('Invalid username or password'));
+        }
+    }
+
+    /**
+    * Logout method
+    *
+    * @return \Cake\Http\Response|null|void Renders view
+    */
+    public function logout()
+    {
+        $result = $this->Authentication->getResult();
+
+        // Regardless of POST or GET, redirect if user is logged in
+        if ($result && $result->isValid()) {
+            $this->Authentication->logout();
+
+            return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+        }
     }
 
     /**
